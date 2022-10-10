@@ -35,6 +35,7 @@ async function run() {
         const userCollection = client.db('doctors_portal').collection('users');
         const doctorCollection = client.db('doctors_portal').collection('doctors');
         const paymentCollection = client.db('doctors_portal').collection('payments');
+        const reviewCollection = client.db('doctors_portal').collection('reviews');
 
         // app.get('/service', async (req, res) => {
         //     const query = {};
@@ -202,7 +203,47 @@ async function run() {
             const filter = { email: email };
             const result = await doctorCollection.deleteOne(filter);
             res.send(result);
+        });
+
+        app.put('/userupdate/:email', verifyJWT, async (req, res) => {
+            const email = req.params.email;
+            const user = req.body;
+            const filter = { email };
+            const option = { upsert: true };
+            const updateDoc = {
+                $set: user
+            };
+            const result = await userCollection.updateOne(filter, updateDoc, option);
+            res.send(result);
         })
+
+        app.get('/userprofile/:email', async (req, res) => {
+            const email = req.params.email;
+            const query = { email };
+            const result = await userCollection.findOne(query);
+            res.send(result);
+        });
+
+        app.post('/review', verifyJWT, async (req, res) => {
+            const query = req.body;
+            const result = await reviewCollection.insertOne(query);
+            res.send(result);
+        });
+
+        app.get('/reviews', async (req, res) => {
+            // const query = {};
+            // const cursor = reviewCollection.find(query);
+            // const services = await cursor.toArray();
+            // res.send(services);
+            const limit = parseInt(req.query.limit);
+            const pageNumber = parseInt(req.query.pageNumber);
+            const cursor = reviewCollection.find();
+            const services = await cursor.skip(limit * pageNumber).limit(limit).toArray();
+
+            const count = await reviewCollection.estimatedDocumentCount();
+            res.send({ services, count });
+
+        });
 
 
     } catch {
