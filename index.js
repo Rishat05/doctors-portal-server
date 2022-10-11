@@ -109,6 +109,14 @@ async function run() {
             res.send({ result, token });
         });
 
+        app.delete('/allusers/dlt/:email', verifyJWT, async (req, res) => {
+            const email = req.params.email;
+            const query = { email };
+            const result = userCollection.deleteOne(query);
+            res.send(result);
+        });
+
+
         // Warning: This is not the proper way to query multiple collection. 
         // After learning more about mongodb. use aggregate, lookup, pipeline, match, group
         app.get('/available', async (req, res) => {
